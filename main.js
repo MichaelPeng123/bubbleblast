@@ -190,6 +190,8 @@ function animate() {
     // Update bullets
     bulletSystem.update(ROOM_BOUNDS);
 
+    targetSystem.update(ROOM_BOUNDS);
+
     // Update score display
     const scoreElement = document.getElementById("score");
     if (scoreElement) {
