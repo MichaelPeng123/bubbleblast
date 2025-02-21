@@ -118,13 +118,11 @@ function checkBounds(position) {
 
 // Corner lights with increased intensity and adjusted range
 const createPointLight = (x, y, z) => {
-    const light = new THREE.PointLight(0xffffff, 0.5, 8);
-    light.position.set(x, y, z);
-    light.decay = 2;
-    return light;
+  const light = new THREE.PointLight(0xffffff, 0.5, 8);
+  light.position.set(x, y, z);
+  light.decay = 2;
+  return light;
 };
-
-// Adjusted corner light positions slightly inward
 scene.add(createPointLight(3.5, 3, -7));
 scene.add(createPointLight(-3.5, 3, -7));
 scene.add(createPointLight(3.5, 3, 7));
@@ -179,9 +177,41 @@ window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+
+// Set up PointerLockControls for FPS-style controls
+const controls = new PointerLockControls(camera, renderer.domElement);
+
+// Define custom sensitivity (increase to make mouse movements more responsive)
+const sensitivity = 0.005;
+
+// Override onMouseMove to apply custom sensitivity
+controls.onMouseMove = function (event) {
+  if (this.isLocked === false) return;
+
+  const movementX = event.movementX || 0;
+  const movementY = event.movementY || 0;
+
+  // Adjust horizontal rotation (yaw)
+  this.yawObject.rotation.y -= movementX * sensitivity;
+  
+  // Adjust vertical rotation (pitch) and clamp between -90° and 90°
+  this.pitchObject.rotation.x -= movementY * sensitivity;
+  this.pitchObject.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.pitchObject.rotation.x));
+};
+
+// Lock the pointer on click
+document.addEventListener('click', () => {
+  controls.lock();
 });
 
-// Simplified animate function
+// Handle window resizing
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Animation loop using renderer.setAnimationLoop
 function animate() {
     requestAnimationFrame(animate);
 
@@ -207,6 +237,6 @@ function animate() {
     }
 
     renderer.render(scene, camera);
+  renderer.render(scene, camera);
 }
-
 renderer.setAnimationLoop(animate);
