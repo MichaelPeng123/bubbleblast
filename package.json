@@ -1,0 +1,27 @@
+{
+  "name": "bubbleblast",
+  "version": "1.0.0",
+  "description": "A first-person shooter game built with Three.js where players shoot spherical bubbles in an immersive 3D environment.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MichaelPeng123/bubbleblast.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MichaelPeng123/bubbleblast/issues"
+  },
+  "homepage": "https://github.com/MichaelPeng123/bubbleblast#readme",
+  "dependencies": {
+    "three": "^0.173.0"
+  },
+  "devDependencies": {
+    "vite": "^6.1.1"
+  }
+}
