@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls";
+import { BulletSystem } from "./bullet.js";
+import { TargetSystem } from "./target.js";
 
 // Create the scene
 const scene = new THREE.Scene();
@@ -23,7 +25,6 @@ const moveState = {
     left: false,
     right: false,
 };
-// Movement controls
 document.addEventListener("keydown", (event) => {
     switch (event.code) {
         case "KeyW":
@@ -40,7 +41,6 @@ document.addEventListener("keydown", (event) => {
             break;
     }
 });
-
 document.addEventListener("keyup", (event) => {
     switch (event.code) {
         case "KeyW":
@@ -97,7 +97,7 @@ directionalLight.position.set(0, 8, 0);
 directionalLight.castShadow = true;
 scene.add(directionalLight);
 
-// Add these constants after room creation
+// Room bounds and boundary check function
 const ROOM_BOUNDS = {
     x: 4.5, // Half room width - buffer
     y: 3.5, // Half room height - buffer
@@ -118,30 +118,33 @@ function checkBounds(position) {
 
 // Corner lights with increased intensity and adjusted range
 const createPointLight = (x, y, z) => {
-  const light = new THREE.PointLight(0xffffff, 0.5, 8);
-  light.position.set(x, y, z);
-  light.decay = 2;
-  return light;
+    const light = new THREE.PointLight(0xffffff, 0.5, 8);
+    light.position.set(x, y, z);
+    light.decay = 2;
+    return light;
 };
 scene.add(createPointLight(3.5, 3, -7));
 scene.add(createPointLight(-3.5, 3, -7));
 scene.add(createPointLight(3.5, 3, 7));
 scene.add(createPointLight(-3.5, 3, 7));
 
-// Replace OrbitControls with PointerLockControls
+// Initialize Target and Bullet systems
+const targetSystem = new TargetSystem(scene);
+const bulletSystem = new BulletSystem(scene, targetSystem);
+
+// Define custom sensitivity (increases responsiveness of mouse movements)
+const sensitivity = 0.01;
+
+// Set up PointerLockControls for FPS-style controls (single instance)
 const controls = new PointerLockControls(camera, renderer.domElement);
-controls.pointerSpeed = 2.0;
 
 // Override onMouseMove to apply custom sensitivity
 controls.onMouseMove = function (event) {
-    if (this.isLocked === false) return;
-
+    if (!this.isLocked) return;
     const movementX = event.movementX || 0;
     const movementY = event.movementY || 0;
-
     // Adjust horizontal rotation (yaw)
     this.yawObject.rotation.y -= movementX * sensitivity;
-
     // Adjust vertical rotation (pitch) and clamp between -90° and 90°
     this.pitchObject.rotation.x -= movementY * sensitivity;
     this.pitchObject.rotation.x = Math.max(
@@ -150,17 +153,7 @@ controls.onMouseMove = function (event) {
     );
 };
 
-// Click to start
-// Add import at the top with other imports
-import { BulletSystem } from "./bullet.js";
-// Add import at the top
-import { TargetSystem } from "./target.js";
-
-// Add after scene creation
-const targetSystem = new TargetSystem(scene);
-const bulletSystem = new BulletSystem(scene, targetSystem);
-
-// Modify the click event listener
+// Click to start or shoot a bullet if already locked
 document.addEventListener("click", () => {
     if (controls.isLocked) {
         const bulletPosition = camera.position.clone();
@@ -177,38 +170,6 @@ window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-
-// Set up PointerLockControls for FPS-style controls
-const controls = new PointerLockControls(camera, renderer.domElement);
-
-// Define custom sensitivity (increase to make mouse movements more responsive)
-const sensitivity = 0.005;
-
-// Override onMouseMove to apply custom sensitivity
-controls.onMouseMove = function (event) {
-  if (this.isLocked === false) return;
-
-  const movementX = event.movementX || 0;
-  const movementY = event.movementY || 0;
-
-  // Adjust horizontal rotation (yaw)
-  this.yawObject.rotation.y -= movementX * sensitivity;
-  
-  // Adjust vertical rotation (pitch) and clamp between -90° and 90°
-  this.pitchObject.rotation.x -= movementY * sensitivity;
-  this.pitchObject.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.pitchObject.rotation.x));
-};
-
-// Lock the pointer on click
-document.addEventListener('click', () => {
-  controls.lock();
-});
-
-// Handle window resizing
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
 // Animation loop using renderer.setAnimationLoop
@@ -222,7 +183,7 @@ function animate() {
         if (moveState.left) controls.moveRight(-moveSpeed);
         if (moveState.right) controls.moveRight(moveSpeed);
 
-        // Check if new position is within bounds
+        // Ensure camera remains within defined bounds
         camera.position.copy(checkBounds(camera.position.clone()));
     }
 
@@ -237,6 +198,5 @@ function animate() {
     }
 
     renderer.render(scene, camera);
-  renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
