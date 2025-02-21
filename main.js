@@ -48,10 +48,18 @@ scene.add(createPointLight(-3.5, 3, 7));
 
 // Replace OrbitControls with PointerLockControls
 const controls = new PointerLockControls(camera, document.body);
+const sensitivity = 0.0005; // Increase this value to speed up camera response
+let targetRotationY = 0;
+let targetRotationX = 0;
+const damping = 0.1;
 
 // Click to start
-document.addEventListener('click', function() {
+document.addEventListener('click', () => {
     controls.lock();
+});
+document.addEventListener('mousemove', (event) => {
+    targetRotationY -= event.movementX * sensitivity;
+    targetRotationX -= event.movementY * sensitivity;
 });
 
 function createAxisLine(color, start, end) {
@@ -80,6 +88,15 @@ window.addEventListener('resize', () => {
 // Simplified animate function
 function animate() {
     requestAnimationFrame(animate);
+
+    // Get current rotations
+    const currentY = controls.object.rotation.y;
+    const currentX = controls.getPitchObject().rotation.x;
+
+    // Smoothly interpolate toward target rotation
+    controls.object.rotation.y += (targetRotationY - currentY) * damping;
+    controls.getPitchObject().rotation.x += (targetRotationX - currentX) * damping;
+
     renderer.render(scene, camera);
 }
 
