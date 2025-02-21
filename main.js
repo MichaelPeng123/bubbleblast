@@ -174,7 +174,7 @@ window.addEventListener("resize", () => {
 
 // Animation loop using renderer.setAnimationLoop
 function animate() {
-    requestAnimationFrame(animate);
+    //requestAnimationFrame(animate);
 
     if (controls.isLocked) {
         // Handle movement

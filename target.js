@@ -11,8 +11,8 @@ export class TargetSystem {
     createTarget() {
         const geometry = new THREE.CircleGeometry(this.TARGET_RADIUS, 32);
         const material = new THREE.MeshStandardMaterial({
-            color: 0xff0000,
-            emissive: 0xff0000,
+            color: 0x1ddce3,
+            emissive: 0x1ddce3,
             emissiveIntensity: 0.3,
             side: THREE.DoubleSide,
         });

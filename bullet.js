@@ -5,15 +5,15 @@ export class BulletSystem {
         this.scene = scene;
         this.targetSystem = targetSystem;
         this.bullets = [];
-        this.BULLET_SPEED = 0.01;
+        this.BULLET_SPEED = 0.25;
         this.BULLET_RADIUS = 0.15;
     }
 
     createBullet(position, direction) {
         const geometry = new THREE.SphereGeometry(this.BULLET_RADIUS);
         const material = new THREE.MeshStandardMaterial({
-            color: 0x00ff00,
-            emissive: 0x00ff00,
+            color: 0xefbf04,
+            emissive: 0xefbf04,
             emissiveIntensity: 0.5,
             metalness: 0.5,
             roughness: 0.2,
