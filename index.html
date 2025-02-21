@@ -1,13 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<title>Bubble Blast</title>
-		<style>
-			body { margin: 0; }
-		</style>
-	</head>
-	<body>
-		<script type="module" src="/main.js"></script>
-	</body>
+    <head>
+        <meta charset="utf-8" />
+        <title>Bubble Blast</title>
+        <style>
+            body {
+                margin: 0;
+            }
+            #score {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                color: #000;
+                font-family: Arial, sans-serif;
+                font-size: 24px;
+                font-weight: bold;
+                background-color: rgba(255, 255, 255, 0.7);
+                padding: 10px 20px;
+                border-radius: 5px;
+                z-index: 1000;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="score">Score: 0</div>
+        <script type="module" src="/main.js"></script>
+    </body>
 </html>
