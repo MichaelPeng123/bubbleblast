@@ -18,11 +18,14 @@ export class TargetSystem {
 
     createTarget() {
         const geometry = new THREE.CircleGeometry(this.TARGET_RADIUS, 32);
+
+        const bubbleTexture = new THREE.TextureLoader().load('assets/bubble.png');
         const material = new THREE.MeshStandardMaterial({
-            color: 0x1ddce3,
-            emissive: 0x1ddce3,
-            emissiveIntensity: 0.3,
+            // color: 0x1ddce3,
+            emissive: 0xffffff,
+            emissiveIntensity: 0.075,
             side: THREE.DoubleSide,
+            map: bubbleTexture
         });
         this.target = new THREE.Mesh(geometry, material);
 

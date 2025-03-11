@@ -6,6 +6,7 @@ import { TargetSystem } from "./target.js";
 // Create the scene
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff); // White background
+let currentLevel = 1;
 
 // Set up the camera
 const camera = new THREE.PerspectiveCamera(
@@ -194,9 +195,11 @@ function animate() {
 
     // Update score display
     const scoreElement = document.getElementById("score");
+    const levelElement = document.getElementById("level");
     if (scoreElement) {
         const currentScore = targetSystem.getScore();
         scoreElement.textContent = `Score: ${currentScore}`;
+        levelElement.textContent = `Level: ${currentLevel}`;
     }
 
     renderer.render(scene, camera);
