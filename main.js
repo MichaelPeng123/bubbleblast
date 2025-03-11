@@ -332,6 +332,26 @@ function showEndScreen() {
     document.getElementById("timeText").innerText = `Time: ${minutes}m ${seconds}s`;
 }
 
+function updateMovement() {
+    if (!controls.isLocked) return; // Only move if Pointer Lock is active
+
+    let moveSpeed = 0.05; // Adjust movement speed
+
+    const direction = new THREE.Vector3();
+    camera.getWorldDirection(direction);
+    direction.y = 0; // Prevent vertical movement
+
+    const right = new THREE.Vector3();
+    right.crossVectors(camera.up, direction).normalize();
+
+    if (moveState.forward) camera.position.addScaledVector(direction, moveSpeed);
+    if (moveState.backward) camera.position.addScaledVector(direction, -moveSpeed);
+    if (moveState.left) camera.position.addScaledVector(right, moveSpeed);  // Switched sign
+    if (moveState.right) camera.position.addScaledVector(right, -moveSpeed); // Switched sign
+
+    checkBounds(camera.position);
+}
+
 
 
 // Animation loop
@@ -340,7 +360,9 @@ function animate() {
         bulletSystem.update(ROOM_BOUNDS);
         levelManager.update(ROOM_BOUNDS);
 
-        updateHUD();
+        updateMovement();
+
+        updateHUD();  // Keep HUD updated dynamically
 
         if (levelManager.allTargetsCleared() && !levelCompleted) {
             handleLevelComplete();
