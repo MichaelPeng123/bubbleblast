@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls";
 import { BulletSystem } from "./bullet.js";
-import { TargetSystem } from "./target.js";
+import { LevelManager } from "./levelManager.js";
 
 // Create the scene
 const scene = new THREE.Scene();
@@ -66,7 +66,7 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
-// Create and style the crosshair image element
+// Crosshair setup
 const crosshairImg = document.createElement("img");
 crosshairImg.src = "assets/crosshair.svg";
 crosshairImg.style.position = "fixed";
@@ -78,13 +78,13 @@ crosshairImg.style.height = "30px";
 crosshairImg.style.pointerEvents = "none";
 document.body.appendChild(crosshairImg);
 
-// Create room geometry and add it to the scene
+// Create room geometry
 const roomGeometry = new THREE.BoxGeometry(10, 8, 20);
 const roomMaterial = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    side: THREE.BackSide,
-    roughness: 0.7,
-    metalness: 0.1,
+  color: 0xffffff,
+  side: THREE.BackSide,
+  roughness: 0.7,
+  metalness: 0.1,
 });
 const room = new THREE.Mesh(roomGeometry, roomMaterial);
 scene.add(room);
@@ -98,110 +98,90 @@ directionalLight.position.set(0, 8, 0);
 directionalLight.castShadow = true;
 scene.add(directionalLight);
 
-// Room bounds and boundary check function
+// Room bounds
 const ROOM_BOUNDS = {
-    x: 4.5, // Half room width - buffer
-    y: 3.5, // Half room height - buffer
-    z: {
-        min: 0, // Restrict movement to not cross the middle
-        max: 9.5, // Back wall boundary
-    },
+  x: 4.5,
+  y: 3.5,
+  z: { min: 0, max: 9.5 }
 };
+
 function checkBounds(position) {
-    position.x = Math.max(-ROOM_BOUNDS.x, Math.min(ROOM_BOUNDS.x, position.x));
-    position.y = Math.max(-ROOM_BOUNDS.y, Math.min(ROOM_BOUNDS.y, position.y));
-    position.z = Math.max(
-        ROOM_BOUNDS.z.min,
-        Math.min(ROOM_BOUNDS.z.max, position.z)
-    );
-    return position;
+  position.x = Math.max(-ROOM_BOUNDS.x, Math.min(ROOM_BOUNDS.x, position.x));
+  position.y = Math.max(-ROOM_BOUNDS.y, Math.min(ROOM_BOUNDS.y, position.y));
+  position.z = Math.max(ROOM_BOUNDS.z.min, Math.min(ROOM_BOUNDS.z.max, position.z));
+  return position;
 }
 
-// Corner lights with increased intensity and adjusted range
+// Optional: additional point lights for extra brightness
 const createPointLight = (x, y, z) => {
-    const light = new THREE.PointLight(0xffffff, 0.5, 8);
-    light.position.set(x, y, z);
-    light.decay = 2;
-    return light;
+  const light = new THREE.PointLight(0xffffff, 0.5, 8);
+  light.position.set(x, y, z);
+  light.decay = 2;
+  return light;
 };
 scene.add(createPointLight(3.5, 3, -7));
 scene.add(createPointLight(-3.5, 3, -7));
 scene.add(createPointLight(3.5, 3, 7));
 scene.add(createPointLight(-3.5, 3, 7));
 
-// Initialize Target and Bullet systems
-const targetSystem = new TargetSystem(scene);
-const bulletSystem = new BulletSystem(scene, targetSystem);
+// Initialize Level and Bullet systems
+const levelManager = new LevelManager(scene);
+const bulletSystem = new BulletSystem(scene, levelManager);
 
-// Define custom sensitivity (increases responsiveness of mouse movements)
-const sensitivity = 0.01;
-
-// Set up PointerLockControls for FPS-style controls (single instance)
+// PointerLockControls setup
 const controls = new PointerLockControls(camera, renderer.domElement);
-
-// Override onMouseMove to apply custom sensitivity
+const sensitivity = 0.01;
 controls.onMouseMove = function (event) {
-    if (!this.isLocked) return;
-    const movementX = event.movementX || 0;
-    const movementY = event.movementY || 0;
-    // Adjust horizontal rotation (yaw)
-    this.yawObject.rotation.y -= movementX * sensitivity;
-    // Adjust vertical rotation (pitch) and clamp between -90° and 90°
-    this.pitchObject.rotation.x -= movementY * sensitivity;
-    this.pitchObject.rotation.x = Math.max(
-        -Math.PI / 2,
-        Math.min(Math.PI / 2, this.pitchObject.rotation.x)
-    );
+  if (!this.isLocked) return;
+  const movementX = event.movementX || 0;
+  const movementY = event.movementY || 0;
+  this.yawObject.rotation.y -= movementX * sensitivity;
+  this.pitchObject.rotation.x -= movementY * sensitivity;
+  this.pitchObject.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.pitchObject.rotation.x));
 };
 
-// Click to start or shoot a bullet if already locked
 document.addEventListener("click", () => {
-    if (controls.isLocked) {
-        const bulletPosition = camera.position.clone();
-        const bulletDirection = new THREE.Vector3();
-        camera.getWorldDirection(bulletDirection);
-        bulletSystem.createBullet(bulletPosition, bulletDirection);
-    } else {
-        controls.lock();
-    }
+  if (controls.isLocked) {
+    const bulletPosition = camera.position.clone();
+    const bulletDirection = new THREE.Vector3();
+    camera.getWorldDirection(bulletDirection);
+    bulletSystem.createBullet(bulletPosition, bulletDirection);
+  } else {
+    controls.lock();
+  }
 });
 
 // Handle window resizing
 window.addEventListener("resize", () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Animation loop using renderer.setAnimationLoop
+// Animation loop
 function animate() {
-    //requestAnimationFrame(animate);
+  // If the user is moving, ensure the camera stays within bounds
+  if (controls.isLocked) {
+    // Example movement (you can add your own movement logic)
+    // camera.position.copy(checkBounds(camera.position.clone()));
+  }
 
-    if (controls.isLocked) {
-        // Handle movement
-        if (moveState.forward) controls.moveForward(moveSpeed);
-        if (moveState.backward) controls.moveForward(-moveSpeed);
-        if (moveState.left) controls.moveRight(-moveSpeed);
-        if (moveState.right) controls.moveRight(moveSpeed);
+  bulletSystem.update(ROOM_BOUNDS);
+  levelManager.update(ROOM_BOUNDS);
 
-        // Ensure camera remains within defined bounds
-        camera.position.copy(checkBounds(camera.position.clone()));
-    }
+  // If all targets are cleared, advance to the next level
+  if (levelManager.allTargetsCleared()) {
+    levelManager.nextLevel();
+  }
 
-    // Update bullets
-    bulletSystem.update(ROOM_BOUNDS);
+  // Update score and level display
+  const scoreElement = document.getElementById("score");
+  const levelElement = document.getElementById("level");
+  if (scoreElement) {
+    scoreElement.textContent = `Score: ${levelManager.getScore()}`;
+    levelElement.textContent = `Level: ${levelManager.getCurrentLevel()}`;
+  }
 
-    targetSystem.update(ROOM_BOUNDS);
-
-    // Update score display
-    const scoreElement = document.getElementById("score");
-    const levelElement = document.getElementById("level");
-    if (scoreElement) {
-        const currentScore = targetSystem.getScore();
-        scoreElement.textContent = `Score: ${currentScore}`;
-        levelElement.textContent = `Level: ${currentLevel}`;
-    }
-
-    renderer.render(scene, camera);
+  renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
