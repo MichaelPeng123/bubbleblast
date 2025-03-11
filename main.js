@@ -178,7 +178,7 @@ function animate() {
   const scoreElement = document.getElementById("score");
   const levelElement = document.getElementById("level");
   if (scoreElement) {
-    scoreElement.textContent = `Score: ${levelManager.getScore()}`;
+    scoreElement.textContent = `Bubbles Left: ${levelManager.getScore()}`;
     levelElement.textContent = `Level: ${levelManager.getCurrentLevel()}`;
   }
 

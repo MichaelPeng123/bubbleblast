@@ -46,7 +46,6 @@ export class LevelManager {
     this.scene = scene;
     this.currentLevel = 1;
     this.targets = [];
-    this.score = 0;
     this.initLevel();
   }
 
@@ -92,17 +91,21 @@ export class LevelManager {
     this.targets.forEach(target => target.update(bounds));
   }
 
+  // When a bullet collides with a target, remove that target.
   checkCollision(bullet) {
-    // Check each target – if a collision is detected, remove that target and add to score
     for (let i = 0; i < this.targets.length; i++) {
       if (this.targets[i].checkCollision(bullet)) {
         this.targets[i].remove();
         this.targets.splice(i, 1);
-        this.score++;
         return true;
       }
     }
     return false;
+  }
+
+  // Score is the number of bubbles left
+  getScore() {
+    return this.targets.length;
   }
 
   allTargetsCleared() {
@@ -112,15 +115,12 @@ export class LevelManager {
   nextLevel() {
     if (this.currentLevel < 3) {
       this.currentLevel++;
-      this.initLevel();
     } else {
-      console.log("Game complete! Final score:", this.score);
-      // Optionally, you might reset the game or show a game over screen here.
+      console.log("Game complete! Restarting the game.");
+      // Restart the game: reset to level 1
+      this.currentLevel = 1;
     }
-  }
-
-  getScore() {
-    return this.score;
+    this.initLevel();
   }
 
   getCurrentLevel() {
