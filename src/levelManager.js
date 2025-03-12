@@ -5,7 +5,7 @@ export class Target {
     this.scene = scene;
     this.radius = radius;
     const geometry = new THREE.CircleGeometry(this.radius, 32);
-    const bubbleTexture = new THREE.TextureLoader().load('assets/bubble.png');
+    const bubbleTexture = new THREE.TextureLoader().load('../assets/bubble.png');
     const material = new THREE.MeshStandardMaterial({
       emissive: 0xffffff,
       emissiveIntensity: 0.075,
