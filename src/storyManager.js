@@ -6,27 +6,25 @@ export class StoryManager {
       this.onContinue = null;
       this.storyTexts = {
         intro: [
-          "BUBBLE POPPER",
-          "Strange bubbles have appeared in this room, and it's your job to pop them all!",
-          "Each bubble you pop earns you points, but be quick - they're constantly moving.",
-          "Complete all levels to become the ultimate Bubble Popper champion!"
+          "BUBBLE BLAST",
+          "Spongebob and Patrick need your help! You're stranded in Bikini Bottom and are surrounded by dirty bubbles.",
+          "In order to escape you need to shoot all the bubbles with your ammo of clean bubbles.",
+          "Complete all the levels to escape and save Spongebob and Patrick.",
+          "The bubbles will come in waves and get angrier as you progress through the levels."
         ],
         level1Complete: [
           "LEVEL 1 COMPLETE",
-          "Nice shooting! You've cleared all the bubbles in the first level.",
-          "But the challenge is just beginning...",
+          "Goob job! You've cleared the first level!",
           "The next level will have more bubbles moving at faster speeds!"
         ],
         level2Complete: [
           "LEVEL 2 COMPLETE",
-          "Impressive! Your bubble-popping skills are getting better.",
-          "The final level will be the ultimate test of your aim and reflexes.",
-          "Get ready for the fastest and most challenging bubbles yet!"
+          "Impressive! Spongebob is very proud.",
+          "This next final level will be the hardest!",
         ],
         level3Complete: [
           "CONGRATULATIONS!",
-          "You've completed all levels and proven yourself to be a master Bubble Popper!",
-          "The room is now clear of all bubbles thanks to your expert marksmanship.",
+          "You've completed all levels and have saved Spongebob and Patrick!",
           "Check out your stats on the next screen!"
         ]
       };
