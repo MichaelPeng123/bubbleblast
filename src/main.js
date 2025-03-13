@@ -4,14 +4,13 @@ import { BulletSystem } from "./bullet.js";
 import { LevelManager } from "./levelManager.js";
 import { StoryManager } from "./storyManager.js";
 import { EndScreen } from "./endScreen.js";
-import { Gun } from "./gun.js";
 
 // Create the scene
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xffffff); // White background
+//scene.background = new THREE.Color(0xffffff); // White background
 
 // Create HUD container
-const hudContainer = document.createElement("div");
+const hudContainer = document.createElement('div');
 hudContainer.id = "hud";
 hudContainer.style.position = "absolute";
 hudContainer.style.top = "10px";
@@ -19,26 +18,27 @@ hudContainer.style.right = "10px";
 hudContainer.style.backgroundColor = "rgba(255, 255, 255, 0.8)";
 hudContainer.style.color = "black";
 hudContainer.style.padding = "10px 20px";
-hudContainer.style.fontSize = "18px";
+hudContainer.style.fontSize = "24px";
 hudContainer.style.borderRadius = "5px";
 hudContainer.style.fontFamily = "Arial, sans-serif";
 hudContainer.style.zIndex = "1000";
 document.body.appendChild(hudContainer);
 
 // Create Level Display
-const levelText = document.createElement("div");
+const levelText = document.createElement('div');
 levelText.id = "levelText";
 hudContainer.appendChild(levelText);
 
 // Create Bubbles Left Display
-const bubblesLeftText = document.createElement("div");
+const bubblesLeftText = document.createElement('div');
 bubblesLeftText.id = "bubblesLeftText";
 hudContainer.appendChild(bubblesLeftText);
 
 // Create Time Display
-const timeText = document.createElement("div");
+const timeText = document.createElement('div');
 timeText.id = "timeText";
 hudContainer.appendChild(timeText);
+
 
 // Set up the camera
 const camera = new THREE.PerspectiveCamera(
@@ -54,12 +54,11 @@ camera.lookAt(0, 0, -10); // Look towards the restricted half
 let gameRunning = false;
 let levelCompleted = false;
 let gameStats = {
-    shotsFired: 0,
-    shotsHit: 0,
-    levelTimes: [0, 0, 0, 0, 0], // Updated to track 5 levels
-    levelStartTime: 0,
-    totalTime: 0,
-    finalScore: 0,
+  shotsFired: 0,
+  shotsHit: 0,
+  levelTimes: [0, 0, 0],  // Time per level
+  levelStartTime: 0,      // Timestamp when level started
+  totalTime: 0            // Total gameplay time (excluding story screens)
 };
 
 // Movement-related setup
@@ -106,8 +105,6 @@ document.addEventListener("keyup", (event) => {
 // Set up the renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
 // Crosshair setup
@@ -122,49 +119,68 @@ crosshairImg.style.height = "30px";
 crosshairImg.style.pointerEvents = "none";
 document.body.appendChild(crosshairImg);
 
-// Create room geometry
-const roomGeometry = new THREE.BoxGeometry(10, 8, 20);
-const roomMaterial = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    side: THREE.BackSide,
-    roughness: 0.7,
-    metalness: 0.1,
-});
-const room = new THREE.Mesh(roomGeometry, roomMaterial);
+const textureLoader = new THREE.TextureLoader();
+const materials = [
+  new THREE.MeshStandardMaterial({ 
+    map: textureLoader.load('assets/spongebob-view1.jpg'),
+    side: THREE.BackSide 
+  }), // Right face
+  new THREE.MeshStandardMaterial({ 
+    map: textureLoader.load('assets/spongebob-view1.jpg'),
+    side: THREE.BackSide 
+  }), // Left face
+  new THREE.MeshStandardMaterial({ 
+    map: textureLoader.load('assets/spongebob-sky.jpg'),
+    side: THREE.BackSide 
+  }), // Top face
+  new THREE.MeshStandardMaterial({ 
+    map: textureLoader.load('assets/spongebob-sand.jpg'),
+    side: THREE.BackSide 
+  }), // Bottom face
+  new THREE.MeshStandardMaterial({ 
+    map: textureLoader.load('assets/spongebob-backdrop.jpg'),
+    side: THREE.BackSide 
+  }), // Front face
+  new THREE.MeshStandardMaterial({ 
+    map: textureLoader.load('assets/spongebob-barren.gif'),
+    side: THREE.BackSide 
+  }), // Back face
+];
+
+// Create room geometry as before
+const roomGeometry = new THREE.BoxGeometry(18, 8, 24);
+const room = new THREE.Mesh(roomGeometry, materials);
 scene.add(room);
 
 // Lighting setup
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+const ambientLight = new THREE.AmbientLight(0xffffff, 2);
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
-directionalLight.position.set(0, 8, 0);
-directionalLight.castShadow = true;
-scene.add(directionalLight);
+// const directionalLight = new THREE.DirectionalLight(0x26f7fd, 0.6);
+// directionalLight.position.set(0, 8, 0);
+// directionalLight.castShadow = true;
+// scene.add(directionalLight);
 
 // Room bounds
 const ROOM_BOUNDS = {
-    x: 4.5,
-    y: 3.5,
-    z: { min: 0, max: 9.5 },
+  x: 4.5,
+  y: 3.5,
+  z: { min: 0, max: 9.5 }
 };
 
 function checkBounds(position) {
-    position.x = Math.max(-ROOM_BOUNDS.x, Math.min(ROOM_BOUNDS.x, position.x));
-    position.y = Math.max(-ROOM_BOUNDS.y, Math.min(ROOM_BOUNDS.y, position.y));
-    position.z = Math.max(
-        ROOM_BOUNDS.z.min,
-        Math.min(ROOM_BOUNDS.z.max, position.z)
-    );
-    return position;
+  position.x = Math.max(-ROOM_BOUNDS.x, Math.min(ROOM_BOUNDS.x, position.x));
+  position.y = Math.max(-ROOM_BOUNDS.y, Math.min(ROOM_BOUNDS.y, position.y));
+  position.z = Math.max(ROOM_BOUNDS.z.min, Math.min(ROOM_BOUNDS.z.max, position.z));
+  return position;
 }
 
 // Optional: additional point lights for extra brightness
 const createPointLight = (x, y, z) => {
-    const light = new THREE.PointLight(0xffffff, 0.5, 8);
-    light.position.set(x, y, z);
-    light.decay = 2;
-    return light;
+  const light = new THREE.PointLight(0xffffff, 0.5, 8);
+  light.position.set(x, y, z);
+  light.decay = 2;
+  return light;
 };
 scene.add(createPointLight(3.5, 3, -7));
 scene.add(createPointLight(-3.5, 3, -7));
@@ -181,119 +197,51 @@ const endScreen = new EndScreen(document.body, gameStats, restartGame);
 
 // Custom BulletSystem extension to track hits
 const originalCreateBullet = bulletSystem.createBullet;
-bulletSystem.createBullet = function (position, direction) {
-    gameStats.shotsFired++;
-    originalCreateBullet.call(this, position, direction);
+bulletSystem.createBullet = function(position, direction) {
+  gameStats.shotsFired++;
+  originalCreateBullet.call(this, position, direction);
 };
 
 // Custom LevelManager extension to track hits
 const originalCheckCollision = levelManager.checkCollision;
-levelManager.checkCollision = function (bullet) {
-    const hit = originalCheckCollision.call(this, bullet);
-    if (hit) {
-        gameStats.shotsHit++;
-    }
-    return hit;
+levelManager.checkCollision = function(bullet) {
+  const hit = originalCheckCollision.call(this, bullet);
+  if (hit) {
+    gameStats.shotsHit++;
+  }
+  return hit;
 };
 
 // PointerLockControls setup
 const controls = new PointerLockControls(camera, renderer.domElement);
 const sensitivity = 0.01;
 controls.onMouseMove = function (event) {
-    if (!this.isLocked) return;
-    const movementX = event.movementX || 0;
-    const movementY = event.movementY || 0;
-    this.yawObject.rotation.y -= movementX * sensitivity;
-    this.pitchObject.rotation.x -= movementY * sensitivity;
-    this.pitchObject.rotation.x = Math.max(
-        -Math.PI / 2,
-        Math.min(Math.PI / 2, this.pitchObject.rotation.x)
-    );
+  if (!this.isLocked) return;
+  const movementX = event.movementX || 0;
+  const movementY = event.movementY || 0;
+  this.yawObject.rotation.y -= movementX * sensitivity;
+  this.pitchObject.rotation.x -= movementY * sensitivity;
+  this.pitchObject.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.pitchObject.rotation.x));
 };
 
-// Add after camera setup
-const gun = new Gun(scene, camera);
-
-// Modify the click event listener
 document.addEventListener("click", () => {
-    if (
-        controls.isLocked &&
-        gameRunning &&
-        !storyManager.isActive() &&
-        !endScreen.isActive()
-    ) {
-        const bulletPosition = camera.position.clone();
-        const bulletDirection = new THREE.Vector3();
-        camera.getWorldDirection(bulletDirection);
-        bulletSystem.createBullet(bulletPosition, bulletDirection);
-
-        // Trigger gun recoil
-        gun.triggerRecoil();
-    } else if (!storyManager.isActive() && !endScreen.isActive()) {
-        controls.lock();
-    }
+  // Only create bullets when the game is running and no UI is showing
+  if (controls.isLocked && gameRunning && !storyManager.isActive() && !endScreen.isActive()) {
+    const bulletPosition = camera.position.clone();
+    const bulletDirection = new THREE.Vector3();
+    camera.getWorldDirection(bulletDirection);
+    bulletSystem.createBullet(bulletPosition, bulletDirection);
+  } else if (!storyManager.isActive() && !endScreen.isActive()) {
+    // Only lock controls if no UI is showing
+    controls.lock();
+  }
 });
-
-// Modify updateMovement function
-function updateMovement() {
-    if (!controls.isLocked) return;
-
-    let moveSpeed = 0.05;
-    let isMoving = false;
-
-    const direction = new THREE.Vector3();
-    camera.getWorldDirection(direction);
-    direction.y = 0;
-
-    const right = new THREE.Vector3();
-    right.crossVectors(camera.up, direction).normalize();
-
-    if (moveState.forward) {
-        camera.position.addScaledVector(direction, moveSpeed);
-        isMoving = true;
-    }
-    if (moveState.backward) {
-        camera.position.addScaledVector(direction, -moveSpeed);
-        isMoving = true;
-    }
-    if (moveState.left) {
-        camera.position.addScaledVector(right, moveSpeed);
-        isMoving = true;
-    }
-    if (moveState.right) {
-        camera.position.addScaledVector(right, -moveSpeed);
-        isMoving = true;
-    }
-
-    checkBounds(camera.position);
-
-    // Update gun bob animation
-    gun.updateBob(isMoving);
-}
-// Modify animation loop
-function animate() {
-    if (gameRunning && !storyManager.isActive() && !endScreen.isActive()) {
-        bulletSystem.update(ROOM_BOUNDS);
-        levelManager.update(ROOM_BOUNDS);
-        gun.updatePosition(); // Update gun position every frame
-
-        updateMovement();
-        updateHUD();
-
-        if (levelManager.allTargetsCleared() && !levelCompleted) {
-            handleLevelComplete();
-        }
-    }
-
-    renderer.render(scene, camera);
-    requestAnimationFrame(animate);
-}
 
 // Handle window resizing
 window.addEventListener("resize", () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
 // Restart the game
@@ -308,11 +256,11 @@ function restartGame() {
         levelTimes: [0, 0, 0],
         levelStartTime: performance.now(), // Start new timer
         totalTime: 0,
-        finalScore: 0,
+        finalScore: 0
     };
 
     // Clear all bullets from the scene
-    bulletSystem.bullets.forEach((bullet) => bulletSystem.scene.remove(bullet));
+    bulletSystem.bullets.forEach(bullet => bulletSystem.scene.remove(bullet));
     bulletSystem.bullets = [];
 
     // Reset level manager
@@ -331,77 +279,68 @@ function restartGame() {
 
 // Start the game with intro story
 function startGame() {
-    // Show intro story
-    storyManager.showStory("intro", () => {
-        gameRunning = true;
-        controls.lock(); // Lock controls after intro
-
-        // Start timing for level 1
-        gameStats.levelStartTime = performance.now();
-    });
+  // Show intro story
+  storyManager.showStory("intro", () => {
+    gameRunning = true;
+    controls.lock();  // Lock controls after intro
+    
+    // Start timing for level 1
+    gameStats.levelStartTime = performance.now();
+  });
 }
 
 // Handle level completion
 function handleLevelComplete() {
-    gameRunning = false;
-    levelCompleted = true;
-    controls.unlock();
-
-    const currentLevel = levelManager.getCurrentLevel();
-
-    // Record time for this level
-    const levelEndTime = performance.now();
-    const levelTime = levelEndTime - gameStats.levelStartTime;
-    gameStats.levelTimes[currentLevel - 1] = levelTime;
-    gameStats.totalTime += levelTime;
-
-    // Calculate accuracy for the current level
-    const accuracy = gameStats.shotsHit / gameStats.shotsFired;
-
-    // Adjust difficulty based on performance
-    levelManager.adjustDifficulty(accuracy, levelTime);
-
-    // Show end screen after level 5
-    if (currentLevel === 5) {
-        storyManager.showStory("level5Complete", () => {
-            showEndScreen();
-        });
-    } else {
-        // Show level completion story
-        let storyKey = `level${currentLevel}Complete`;
-
-        storyManager.showStory(storyKey, () => {
-            levelManager.nextLevel();
-            gameRunning = true;
-            levelCompleted = false;
-            controls.lock();
-
-            // Start timing for next level
-            gameStats.levelStartTime = performance.now();
-        });
-    }
+  gameRunning = false;
+  levelCompleted = true;
+  controls.unlock();  // Unlock controls to show story
+  
+  const currentLevel = levelManager.getCurrentLevel();
+  
+  // Record time for this level
+  const levelEndTime = performance.now();
+  const levelTime = levelEndTime - gameStats.levelStartTime;
+  gameStats.levelTimes[currentLevel - 1] = levelTime;
+  gameStats.totalTime += levelTime;
+  
+  // Show end screen after level 3
+  if (currentLevel === 3) {
+    storyManager.showStory("level3Complete", () => {
+      showEndScreen();
+    });
+  } else {
+    // Show level completion story
+    let storyKey = currentLevel === 1 ? "level1Complete" : "level2Complete";
+    
+    storyManager.showStory(storyKey, () => {
+      levelManager.nextLevel();
+      gameRunning = true;
+      levelCompleted = false;
+      controls.lock();  // Lock controls after story
+      
+      // Start timing for next level
+      gameStats.levelStartTime = performance.now();
+    });
+  }
 }
 
 // Show the end screen with game stats
 function showEndScreen() {
     // Calculate accuracy (avoid division by zero)
-    let accuracy =
-        gameStats.shotsFired > 0
-            ? (gameStats.shotsHit / gameStats.shotsFired) * 100
-            : 0;
-
+    let accuracy = gameStats.shotsFired > 0 ? (gameStats.shotsHit / gameStats.shotsFired) * 100 : 0;
+  
     // Calculate score
     let baseScore = 1000;
     let accuracyBonus = accuracy * 10;
     let timePenalty = gameStats.totalTime / 100; // Reduces score slightly based on time
     gameStats.finalScore = Math.max(0, baseScore + accuracyBonus - timePenalty); // Ensures score never goes negative
-
+  
     // Update and show the end screen
     endScreen.updateStats(gameStats);
     endScreen.show();
-}
+  }
 
-function updateHUD() {
+  function updateHUD() {
     let level = levelManager.getCurrentLevel();
     let bubblesLeft = levelManager.getScore();
     let elapsedTime = (performance.now() - gameStats.levelStartTime) / 1000;
@@ -409,12 +348,49 @@ function updateHUD() {
     let seconds = Math.floor(elapsedTime % 60);
 
     document.getElementById("levelText").innerText = `Level: ${level}`;
-    document.getElementById(
-        "bubblesLeftText"
-    ).innerText = `Bubbles Left: ${bubblesLeft}`;
-    document.getElementById(
-        "timeText"
-    ).innerText = `Time: ${minutes}m ${seconds}s`;
+    document.getElementById("bubblesLeftText").innerText = `Bubbles Left: ${bubblesLeft}`;
+    document.getElementById("timeText").innerText = `Time: ${minutes}m ${seconds}s`;
+}
+
+function updateMovement() {
+    if (!controls.isLocked) return; // Only move if Pointer Lock is active
+
+    let moveSpeed = 0.05; // Adjust movement speed
+
+    const direction = new THREE.Vector3();
+    camera.getWorldDirection(direction);
+    direction.y = 0; // Prevent vertical movement
+
+    const right = new THREE.Vector3();
+    right.crossVectors(camera.up, direction).normalize();
+
+    if (moveState.forward) camera.position.addScaledVector(direction, moveSpeed);
+    if (moveState.backward) camera.position.addScaledVector(direction, -moveSpeed);
+    if (moveState.left) camera.position.addScaledVector(right, moveSpeed);  // Switched sign
+    if (moveState.right) camera.position.addScaledVector(right, -moveSpeed); // Switched sign
+
+    checkBounds(camera.position);
+}
+
+
+
+// Animation loop
+function animate() {
+    if (gameRunning && !storyManager.isActive() && !endScreen.isActive()) {
+        bulletSystem.update(ROOM_BOUNDS);
+        levelManager.update(ROOM_BOUNDS);
+
+        updateMovement();
+
+        updateHUD();  // Keep HUD updated dynamically
+
+        if (levelManager.allTargetsCleared() && !levelCompleted) {
+            handleLevelComplete();
+        }
+    }
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
 }
 
 // Start everything up
