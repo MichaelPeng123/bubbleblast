@@ -190,12 +190,100 @@ controls.onMouseMove = function (event) {
   this.pitchObject.rotation.x -= movementY * sensitivity;
   this.pitchObject.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.pitchObject.rotation.x));
 };
+
+// Create an audio listener and attach it to the camera
+const audioListener = new THREE.AudioListener();
+camera.add(audioListener);
+
+// Create audio source for blast sound 
+const blastSound = new THREE.Audio(audioListener);
+
+// Create audio source for level complete sound
+const levelCompleteSound = new THREE.Audio(audioListener);
+
+// Add flags to track if sounds are loaded
+let soundLoaded = false;
+let levelCompleteSoundLoaded = false;
+
+// Load the blast sound with explicit error handling
+const audioLoader = new THREE.AudioLoader();
+audioLoader.load(
+  'assets/blast.mp3',
+  function(buffer) {
+    blastSound.setBuffer(buffer);
+    blastSound.setVolume(1.0); // Increased volume to maximum
+    blastSound.setLoop(false);
+    soundLoaded = true;
+    console.log("Blast sound loaded successfully"); // Debug message
+  },
+  function(xhr) {
+    console.log("Blast sound: " + (xhr.loaded / xhr.total * 100) + '% loaded'); // Show loading progress
+  },
+  function(error) {
+    console.error('Error loading blast sound:', error); // Show loading errors
+  }
+);
+
+// Load the level complete sound with explicit error handling
+audioLoader.load(
+  'assets/level_complete.mp3',
+  function(buffer) {
+    levelCompleteSound.setBuffer(buffer);
+    levelCompleteSound.setVolume(0.6); // Full volume for level complete
+    levelCompleteSound.setLoop(false);
+    levelCompleteSoundLoaded = true;
+    console.log("Level complete sound loaded successfully");
+  },
+  function(xhr) {
+    console.log("Level complete sound: " + (xhr.loaded / xhr.total * 100) + '% loaded');
+  },
+  function(error) {
+    console.error('Error loading level complete sound:', error);
+  }
+);
+
+// Initialize audio context with explicit user interaction
+document.addEventListener('click', function initAudio() {
+  // Resume audio context on first click
+  if (audioListener.context.state === 'suspended') {
+    audioListener.context.resume().then(() => {
+      console.log('AudioContext resumed');
+    });
+    document.removeEventListener('click', initAudio);
+  }
+}, { once: false });
+
+// Modified click handler with debugging
 document.addEventListener("click", () => {
   if (controls.isLocked && gameRunning && !storyManager.isActive() && !endScreen.isActive()) {
     const bulletPosition = camera.position.clone();
     const bulletDirection = new THREE.Vector3();
     camera.getWorldDirection(bulletDirection);
     bulletSystem.createBullet(bulletPosition, bulletDirection);
+    
+    // Play blast sound with debugging
+    console.log("Attempting to play sound, loaded:", soundLoaded);
+    
+    if (soundLoaded) {
+      // Make sure audio context is running
+      if (audioListener.context.state !== 'running') {
+        audioListener.context.resume();
+      }
+      
+      if (blastSound.isPlaying) {
+        blastSound.stop(); // Stop and reset the sound
+      }
+      
+      // Play with explicit error handling
+      try {
+        blastSound.play();
+        console.log("Sound play() called");
+      } catch (e) {
+        console.error("Error playing sound:", e);
+      }
+    } else {
+      console.warn("Sound not loaded yet");
+    }
   } else if (!storyManager.isActive() && !endScreen.isActive()) {
     controls.lock();
   }
@@ -236,33 +324,33 @@ function startGame() {
 }
 
 function handleLevelComplete() {
-  gameRunning = false;
-  levelCompleted = true;
-  controls.unlock();
-  
-  const currentLevel = levelManager.getCurrentLevel();
-  
-  const levelEndTime = performance.now();
-  const levelTime = levelEndTime - gameStats.levelStartTime;
-  gameStats.levelTimes[currentLevel - 1] = levelTime;
-  gameStats.totalTime += levelTime;
-  
-  if (currentLevel === 3) {
-    storyManager.showStory("level3Complete", () => {
-      showEndScreen();
-    });
-  } else {
-    let storyKey = currentLevel === 1 ? "level1Complete" : "level2Complete";
+    gameRunning = false;
+    levelCompleted = true;
+    controls.unlock();
     
-    storyManager.showStory(storyKey, () => {
-      levelManager.nextLevel();
-      gameRunning = true;
-      levelCompleted = false;
-      controls.lock();
-      
-      gameStats.levelStartTime = performance.now();
-    });
-  }
+    const currentLevel = levelManager.getCurrentLevel();
+    
+    const levelEndTime = performance.now();
+    const levelTime = levelEndTime - gameStats.levelStartTime;
+    gameStats.levelTimes[currentLevel - 1] = levelTime;
+    gameStats.totalTime += levelTime;
+    
+    if (currentLevel === 3) {
+        storyManager.showStory("level3Complete", () => {
+            showEndScreen();
+        });
+    } else {
+        let storyKey = currentLevel === 1 ? "level1Complete" : "level2Complete";
+        
+        storyManager.showStory(storyKey, () => {
+            levelManager.nextLevel();
+            gameRunning = true;
+            levelCompleted = false;
+            controls.lock();
+            
+            gameStats.levelStartTime = performance.now();
+        });
+    }
 }
 
 function showEndScreen() {
@@ -315,7 +403,29 @@ function animate() {
         levelManager.update(ROOM_BOUNDS);
         updateMovement();
         updateHUD();
+        
         if (levelManager.allTargetsCleared() && !levelCompleted) {
+            console.log("Level completed! Attempting to play LEVEL COMPLETE sound");
+            
+            if (soundLoaded) {
+                if (audioListener.context.state !== 'running') {
+                    audioListener.context.resume();
+                }
+                
+                if (blastSound.isPlaying) {
+                    blastSound.stop();
+                }
+                
+                try {
+                    levelCompleteSound.play();
+                    console.log("Level complete sound played successfully");
+                } catch (e) {
+                    console.error("Error playing level complete sound:", e);
+                }
+            } else {
+                console.warn("Level complete sound not loaded yet");
+            }
+            
             handleLevelComplete();
         }
     }
