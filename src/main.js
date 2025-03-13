@@ -148,12 +148,12 @@ const materials = [
 ];
 
 // Create room geometry as before
-const roomGeometry = new THREE.BoxGeometry(40, 32, 80);
+const roomGeometry = new THREE.BoxGeometry(18, 8, 24);
 const room = new THREE.Mesh(roomGeometry, materials);
 scene.add(room);
 
 // Lighting setup
-const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+const ambientLight = new THREE.AmbientLight(0xffffff, 2);
 scene.add(ambientLight);
 
 // const directionalLight = new THREE.DirectionalLight(0x26f7fd, 0.6);
