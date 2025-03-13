@@ -4,12 +4,11 @@ export class Target {
   constructor(scene, position, velocity, radius = 0.5) {
     this.scene = scene;
     this.radius = radius;
-    const geometry = new THREE.SphereGeometry(this.radius, 32);
-    const bubbleTexture = new THREE.TextureLoader().load('../assets/bubble.png');
+    const geometry = new THREE.CircleGeometry(this.radius, 32);
+    const bubbleTexture = new THREE.TextureLoader().load('../assets/dirty-bubble.png');
     const material = new THREE.MeshStandardMaterial({
-      emissive: 0xffffff,
-      emissiveIntensity: 0.075,
-      side: THREE.DoubleSide,
+      emissive: 0x7c602b,
+      emissiveIntensity: 0.5,
       map: bubbleTexture
     });
     this.mesh = new THREE.Mesh(geometry, material);

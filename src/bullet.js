@@ -11,12 +11,14 @@ export class BulletSystem {
 
   createBullet(position, direction) {
     const geometry = new THREE.SphereGeometry(this.BULLET_RADIUS);
+    const bubbleTexture = new THREE.TextureLoader().load('../assets/bubble.png');
     const material = new THREE.MeshStandardMaterial({
-      color: 0xefbf04,
-      emissive: 0xefbf04,
-      emissiveIntensity: 0.5,
-      metalness: 0.5,
-      roughness: 0.2,
+      // color: 0x26f7fd,
+      emissive: 0x26f7fd,
+      emissiveIntensity: 0.3,
+      // metalness: 0.5,
+      // roughness: 0.2,
+      map: bubbleTexture
     });
     const bullet = new THREE.Mesh(geometry, material);
 
