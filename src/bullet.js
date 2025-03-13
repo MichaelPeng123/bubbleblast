@@ -57,4 +57,5 @@ export class BulletSystem {
         this.bullets.splice(i, 1);
       }
     }
+  }
 }
