@@ -1,6 +1,7 @@
 import * as THREE from "three";
 
 export class BulletSystem {
+
   constructor(scene, levelManager) {
     this.scene = scene;
     this.levelManager = levelManager;
@@ -56,5 +57,4 @@ export class BulletSystem {
         this.bullets.splice(i, 1);
       }
     }
-  }
 }
