@@ -7,7 +7,7 @@ import { EndScreen } from "./endScreen.js";
 
 // Create the scene
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xffffff); // White background
+//scene.background = new THREE.Color(0xffffff); // White background
 
 // Create HUD container
 const hudContainer = document.createElement('div');
@@ -105,8 +105,6 @@ document.addEventListener("keyup", (event) => {
 // Set up the renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
 // Crosshair setup
@@ -121,25 +119,47 @@ crosshairImg.style.height = "30px";
 crosshairImg.style.pointerEvents = "none";
 document.body.appendChild(crosshairImg);
 
-// Create room geometry
-const roomGeometry = new THREE.BoxGeometry(10, 8, 20);
-const roomMaterial = new THREE.MeshStandardMaterial({
-  color: 0xffffff,
-  side: THREE.BackSide,
-  roughness: 0.7,
-  metalness: 0.1,
-});
-const room = new THREE.Mesh(roomGeometry, roomMaterial);
+const textureLoader = new THREE.TextureLoader();
+const materials = [
+  new THREE.MeshStandardMaterial({ 
+    map: textureLoader.load('assets/spongebob-view1.jpg'),
+    side: THREE.BackSide 
+  }), // Right face
+  new THREE.MeshStandardMaterial({ 
+    map: textureLoader.load('assets/spongebob-view1.jpg'),
+    side: THREE.BackSide 
+  }), // Left face
+  new THREE.MeshStandardMaterial({ 
+    map: textureLoader.load('assets/spongebob-sky.jpg'),
+    side: THREE.BackSide 
+  }), // Top face
+  new THREE.MeshStandardMaterial({ 
+    map: textureLoader.load('assets/spongebob-sand.jpg'),
+    side: THREE.BackSide 
+  }), // Bottom face
+  new THREE.MeshStandardMaterial({ 
+    map: textureLoader.load('assets/spongebob-backdrop.jpg'),
+    side: THREE.BackSide 
+  }), // Front face
+  new THREE.MeshStandardMaterial({ 
+    map: textureLoader.load('assets/spongebob-barren.gif'),
+    side: THREE.BackSide 
+  }), // Back face
+];
+
+// Create room geometry as before
+const roomGeometry = new THREE.BoxGeometry(40, 32, 80);
+const room = new THREE.Mesh(roomGeometry, materials);
 scene.add(room);
 
 // Lighting setup
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
-directionalLight.position.set(0, 8, 0);
-directionalLight.castShadow = true;
-scene.add(directionalLight);
+// const directionalLight = new THREE.DirectionalLight(0x26f7fd, 0.6);
+// directionalLight.position.set(0, 8, 0);
+// directionalLight.castShadow = true;
+// scene.add(directionalLight);
 
 // Room bounds
 const ROOM_BOUNDS = {
