@@ -18,7 +18,6 @@ export class Target {
   }
 
   update(bounds) {
-    // Move the target
     this.mesh.position.add(this.velocity);
 
     // Bounce off the walls (X and Y limits)
@@ -49,11 +48,10 @@ export class LevelManager {
   }
 
   initLevel() {
-    // Remove any existing targets
     this.targets.forEach(target => target.remove());
     this.targets = [];
 
-    // Set different properties based on level
+    // Dynamic Level Difficulty
     let numberOfTargets, speedMultiplier;
     if (this.currentLevel === 1) {
       numberOfTargets = 3;
@@ -69,12 +67,12 @@ export class LevelManager {
       speedMultiplier = 2;
     }
 
-    // Create the targets for the current level
+    // Create dirty bubbles
     for (let i = 0; i < numberOfTargets; i++) {
       const position = new THREE.Vector3(
-        (Math.random() - 0.5) * 8,  // X position range
-        (Math.random() - 0.5) * 6,  // Y position range
-        -9.9                      // Always on the front wall
+        (Math.random() - 0.5) * 8,
+        (Math.random() - 0.5) * 6,
+        -9.9
       );
       const velocity = new THREE.Vector3(
         (Math.random() - 0.5) * 0.05 * speedMultiplier,
@@ -90,7 +88,6 @@ export class LevelManager {
     this.targets.forEach(target => target.update(bounds));
   }
 
-  // When a bullet collides with a target, remove that target.
   checkCollision(bullet) {
     for (let i = 0; i < this.targets.length; i++) {
       if (this.targets[i].checkCollision(bullet)) {
@@ -102,7 +99,6 @@ export class LevelManager {
     return false;
   }
 
-  // Score is the number of bubbles left
   getScore() {
     return this.targets.length;
   }
@@ -115,8 +111,6 @@ export class LevelManager {
     if (this.currentLevel < 3) {
       this.currentLevel++;
     } else {
-      console.log("Game complete! Restarting the game.");
-      // Restart the game: reset to level 1
       this.currentLevel = 1;
     }
     this.initLevel();

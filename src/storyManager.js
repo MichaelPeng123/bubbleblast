@@ -80,7 +80,6 @@ export class StoryManager {
       this.isDisplaying = true;
       this.onContinue = callback;
       
-      // Remove any existing paragraphs except the continue text
       while (this.storyContainer.children.length > 1) {
         this.storyContainer.removeChild(this.storyContainer.firstChild);
       }
@@ -95,11 +94,9 @@ export class StoryManager {
         paragraph.style.fontWeight = index === 0 ? 'bold' : 'normal';
         paragraph.innerText = text;
         
-        // Insert before the continue text
         this.storyContainer.insertBefore(paragraph, this.storyContainer.lastChild);
       });
       
-      // Show the container
       this.storyContainer.style.display = 'block';
     }
   
