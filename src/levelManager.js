@@ -15,9 +15,17 @@ export class Target {
     this.mesh.position.copy(position);
     this.velocity = velocity;
     this.scene.add(this.mesh);
+    
+    // Add depth movement properties
+    this.initialZ = position.z;
+    this.depthMovementEnabled = true;
+    this.depthRange = 2;
+    this.depthSpeed = 0.01;
+    this.depthPhase = Math.random() * Math.PI * 2; // Random starting phase
   }
 
   update(bounds) {
+    // Apply regular XY movement
     this.mesh.position.add(this.velocity);
 
     // Bounce off the walls (X and Y limits)
@@ -26,6 +34,19 @@ export class Target {
     }
     if (this.mesh.position.y >= bounds.y || this.mesh.position.y <= -bounds.y) {
       this.velocity.y *= -1;
+    }
+    
+    // Add explicit Z-axis movement
+    if (this.depthMovementEnabled) {
+      // Update the phase for this frame
+      this.depthPhase += this.depthSpeed;
+      
+      // Calculate new Z position using sine wave
+      const zOffset = Math.sin(this.depthPhase) * this.depthRange;
+      this.mesh.position.z = this.initialZ + zOffset;
+      
+      // Debug: Verify z-movement is happening
+      // console.log(`Bubble Z: ${this.mesh.position.z}, Initial Z: ${this.initialZ}, Offset: ${zOffset}`);
     }
   }
 
@@ -44,7 +65,22 @@ export class LevelManager {
     this.scene = scene;
     this.currentLevel = 1;
     this.targets = [];
+    this.depthMovementConfig = {
+      enabled: true,
+      range: 2,
+      speed: 0.01
+    };
     this.initLevel();
+  }
+
+  setMovementConfig(config) {
+    this.depthMovementConfig = {...this.depthMovementConfig, ...config};
+    // Apply to existing targets
+    this.targets.forEach(target => {
+      target.depthMovementEnabled = this.depthMovementConfig.enabled;
+      target.depthRange = this.depthMovementConfig.range;
+      target.depthSpeed = this.depthMovementConfig.speed;
+    });
   }
 
   initLevel() {
@@ -72,7 +108,7 @@ export class LevelManager {
       const position = new THREE.Vector3(
         (Math.random() - 0.5) * 8,
         (Math.random() - 0.5) * 6,
-        -9.9
+        -9.9 // Start at back wall position
       );
       const velocity = new THREE.Vector3(
         (Math.random() - 0.5) * 0.05 * speedMultiplier,
@@ -80,11 +116,18 @@ export class LevelManager {
         0
       );
       const target = new Target(this.scene, position, velocity);
+      
+      // Apply depth movement settings
+      target.depthMovementEnabled = this.depthMovementConfig.enabled;
+      target.depthRange = this.depthMovementConfig.range;
+      target.depthSpeed = this.depthMovementConfig.speed;
+      
       this.targets.push(target);
     }
   }
 
   update(bounds) {
+    // Make sure we call update on each target
     this.targets.forEach(target => target.update(bounds));
   }
 

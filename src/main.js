@@ -160,6 +160,13 @@ const bulletSystem = new BulletSystem(scene, levelManager);
 const storyManager = new StoryManager(document.body);
 const endScreen = new EndScreen(document.body, gameStats, restartGame);
 
+// Configure bubble depth movement
+levelManager.setMovementConfig({
+  enabled: true,     // Turn on depth movement
+  range: 2,          // How far bubbles can move in z-direction (back and forth)
+  speed: 0.015       // Speed of the depth movement
+});
+
 const originalCreateBullet = bulletSystem.createBullet;
 const originalCheckCollision = levelManager.checkCollision;
 bulletSystem.createBullet = function(position, direction) {
