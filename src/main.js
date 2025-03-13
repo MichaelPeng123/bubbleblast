@@ -40,6 +40,12 @@ const timeText = document.createElement('div');
 timeText.id = "timeText";
 levelInfo.appendChild(timeText);
 
+// Add this after your existing HUD elements (levelText, bubblesLeftText, timeText)
+const scoreText = document.createElement('div');
+scoreText.id = "scoreText";
+scoreText.style.color = "#003366"; // Yellow text to make it stand out
+levelInfo.appendChild(scoreText);
+
 // Crosshair
 const crosshairImg = document.createElement("img");
 crosshairImg.src = "assets/crosshair.svg";
@@ -60,6 +66,7 @@ window.addEventListener("resize", () => {
 
 let gameRunning = false;
 let levelCompleted = false;
+let score = 0;
 let gameStats = {
   shotsFired: 0,
   shotsHit: 0,
@@ -175,7 +182,11 @@ bulletSystem.createBullet = function(position, direction) {
 };
 levelManager.checkCollision = function(bullet) {
   const hit = originalCheckCollision.call(this, bullet);
-  if (hit) gameStats.shotsHit++;
+  if (hit) {
+    gameStats.shotsHit++;
+    score += 100;
+    console.log("Enemy hit! Score: " + score);
+  }
   return hit;
 };
 
@@ -292,6 +303,7 @@ document.addEventListener("click", () => {
 function restartGame() {
     gameRunning = false;
     levelCompleted = false;
+    score = 0;
     gameStats = {
         shotsFired: 0,
         shotsHit: 0,
@@ -335,6 +347,15 @@ function handleLevelComplete() {
     gameStats.levelTimes[currentLevel - 1] = levelTime;
     gameStats.totalTime += levelTime;
     
+    // Calculate time bonus if level completed in under 2 minutes
+    const twoMinutesInMs = 2 * 60 * 1000; // 2 minutes in milliseconds
+    if (levelTime < twoMinutesInMs) {
+        const secondsUnderTwoMinutes = Math.floor((twoMinutesInMs - levelTime) / 1000);
+        const timeBonus = Math.max(0, secondsUnderTwoMinutes * 5); // 10 points per second under 2 minutes
+        score += timeBonus;
+        console.log(`Time Bonus: +${timeBonus} points (${secondsUnderTwoMinutes} seconds under 2 minutes)`);
+    }
+    
     if (currentLevel === 3) {
         storyManager.showStory("level3Complete", () => {
             showEndScreen();
@@ -356,16 +377,22 @@ function handleLevelComplete() {
 function showEndScreen() {
     let accuracy = gameStats.shotsFired > 0 ? (gameStats.shotsHit / gameStats.shotsFired) * 100 : 0;
   
-    let baseScore = 1000;
-    let accuracyBonus = accuracy * 10;
-    let timePenalty = gameStats.totalTime / 100;
-    gameStats.finalScore = Math.max(0, baseScore + accuracyBonus - timePenalty);
+    // Base score from enemies hit and time bonuses
+    let finalScore = score;
+    
+    // Add accuracy bonus - up to 500 points for perfect accuracy
+    let accuracyBonus = Math.round(accuracy * 300);
+    finalScore += accuracyBonus;
+    
+    console.log(`Final Score: ${finalScore} (Base: ${score}, Accuracy Bonus: ${accuracyBonus}, Accuracy: ${accuracy.toFixed(1)}%)`);
+    
+    gameStats.finalScore = finalScore;
   
     endScreen.updateStats(gameStats);
     endScreen.show();
-  }
+}
 
-  function updateHUD() {
+function updateHUD() {
     let level = levelManager.getCurrentLevel();
     let bubblesLeft = levelManager.getScore();
     let elapsedTime = (performance.now() - gameStats.levelStartTime) / 1000;
@@ -375,6 +402,7 @@ function showEndScreen() {
     document.getElementById("levelText").innerText = `Level: ${level}`;
     document.getElementById("bubblesLeftText").innerText = `Bubbles Left: ${bubblesLeft}`;
     document.getElementById("timeText").innerText = `Time: ${minutes}m ${seconds}s`;
+    document.getElementById("scoreText").innerText = `Score: ${score}`;
 }
 
 function updateMovement() {
