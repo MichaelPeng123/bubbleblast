@@ -381,7 +381,7 @@ function showEndScreen() {
     let finalScore = score;
     
     // Add accuracy bonus - up to 500 points for perfect accuracy
-    let accuracyBonus = Math.round(accuracy * 300);
+    let accuracyBonus = Math.round(accuracy/100 * 300);
     finalScore += accuracyBonus;
     
     console.log(`Final Score: ${finalScore} (Base: ${score}, Accuracy Bonus: ${accuracyBonus}, Accuracy: ${accuracy.toFixed(1)}%)`);
