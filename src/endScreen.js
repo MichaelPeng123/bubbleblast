@@ -28,7 +28,6 @@ export class EndScreen {
         this.endScreenContainer.style.display = "none";
         this.endScreenContainer.style.textAlign = "center";
 
-        // Add to DOM
         this.domElement.appendChild(this.endScreenContainer);
     }
 
@@ -37,10 +36,8 @@ export class EndScreen {
     }
 
     show() {
-        // Clear any existing content
         this.endScreenContainer.innerHTML = "";
 
-        // Title
         const title = document.createElement("h1");
         title.innerText = "MISSION COMPLETE";
         title.style.color = "#ffffff";
@@ -48,16 +45,12 @@ export class EndScreen {
         title.style.fontSize = "32px";
         this.endScreenContainer.appendChild(title);
 
-        // Score
         const scoreText = document.createElement("h2");
-        scoreText.innerHTML = `Final Score: <span style="color: #ffff00;">${Math.round(
-            this.gameStats.finalScore
-        )}</span>`;
+        scoreText.innerHTML = `Final Score: <span style="color: #ffff00;">${Math.round(this.gameStats.finalScore)}</span>`;
         scoreText.style.marginBottom = "20px";
         scoreText.style.fontSize = "28px";
         this.endScreenContainer.appendChild(scoreText);
 
-        // Stats container
         const statsContainer = document.createElement("div");
         statsContainer.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
         statsContainer.style.padding = "20px";
@@ -65,13 +58,9 @@ export class EndScreen {
         statsContainer.style.marginBottom = "30px";
         statsContainer.style.textAlign = "left";
 
-        // Accuracy stats
-        const accuracy =
-            (this.gameStats.shotsHit / this.gameStats.shotsFired) * 100 || 0;
+        const accuracy = (this.gameStats.shotsHit / this.gameStats.shotsFired) * 100 || 0;
         const accuracyText = document.createElement("p");
-        accuracyText.innerHTML = `<span style="color: #ffffff;">Accuracy:</span> ${accuracy.toFixed(
-            1
-        )}% (${this.gameStats.shotsHit}/${this.gameStats.shotsFired})`;
+        accuracyText.innerHTML = `<span style="color: #ffffff;">Accuracy:</span> ${accuracy.toFixed(1)}% (${this.gameStats.shotsHit}/${this.gameStats.shotsFired})`;
         accuracyText.style.marginBottom = "10px";
         statsContainer.appendChild(accuracyText);
 
@@ -105,7 +94,6 @@ export class EndScreen {
 
         this.endScreenContainer.appendChild(statsContainer);
 
-        // Restart button
         const restartButton = document.createElement("button");
         restartButton.innerText = "PLAY AGAIN";
         restartButton.style.backgroundColor = "#4fc3f7";
@@ -137,7 +125,6 @@ export class EndScreen {
 
         this.endScreenContainer.appendChild(restartButton);
 
-        // Show the container
         this.endScreenContainer.style.display = "block";
         this.isDisplaying = true;
     }
