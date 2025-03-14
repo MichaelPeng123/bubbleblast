@@ -6,7 +6,12 @@ import { StoryManager } from "./storyManager.js";
 import { EndScreen } from "./endScreen.js";
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+const camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+);
 camera.position.set(0, 0, 0);
 camera.lookAt(0, 0, -12);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -14,7 +19,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // Level Info: Level, Bubbles Left, Time
-const levelInfo = document.createElement('div');
+const levelInfo = document.createElement("div");
 levelInfo.id = "hud";
 levelInfo.style.position = "absolute";
 levelInfo.style.top = "10px";
@@ -28,19 +33,19 @@ levelInfo.style.fontFamily = "Arial, sans-serif";
 levelInfo.style.zIndex = "1000";
 document.body.appendChild(levelInfo);
 
-const levelText = document.createElement('div');
+const levelText = document.createElement("div");
 levelText.id = "levelText";
 levelInfo.appendChild(levelText);
 
-const bubblesLeftText = document.createElement('div');
+const bubblesLeftText = document.createElement("div");
 bubblesLeftText.id = "bubblesLeftText";
 levelInfo.appendChild(bubblesLeftText);
 
-const timeText = document.createElement('div');
+const timeText = document.createElement("div");
 timeText.id = "timeText";
 levelInfo.appendChild(timeText);
 
-const scoreText = document.createElement('div');
+const scoreText = document.createElement("div");
 scoreText.id = "scoreText";
 scoreText.style.color = "#003366";
 levelInfo.appendChild(scoreText);
@@ -72,7 +77,7 @@ let gameStats = {
     shotsHit: 0,
     levelTimes: [0, 0, 0],
     levelStartTime: 0,
-    totalTime: 0
+    totalTime: 0,
 };
 
 const moveState = {
@@ -119,29 +124,29 @@ document.addEventListener("keyup", (event) => {
 const roomGeometry = new THREE.BoxGeometry(18, 8, 24);
 const textureLoader = new THREE.TextureLoader();
 const materials = [
-    new THREE.MeshStandardMaterial({ 
-        map: textureLoader.load('assets/spongebob-view1.jpg'),
-        side: THREE.BackSide 
-    }), // Right 
-    new THREE.MeshStandardMaterial({ 
-        map: textureLoader.load('assets/spongebob-view1.jpg'),
-        side: THREE.BackSide 
-    }), // Left 
-    new THREE.MeshStandardMaterial({ 
-        map: textureLoader.load('assets/spongebob-sky.jpg'),
-        side: THREE.BackSide 
-    }), // Top 
-    new THREE.MeshStandardMaterial({ 
-        map: textureLoader.load('assets/spongebob-sand.jpg'),
-        side: THREE.BackSide 
-    }), // Bottom 
-    new THREE.MeshStandardMaterial({ 
-        map: textureLoader.load('assets/spongebob-backdrop.jpg'),
-        side: THREE.BackSide 
+    new THREE.MeshStandardMaterial({
+        map: textureLoader.load("assets/spongebob-view1.jpg"),
+        side: THREE.BackSide,
+    }), // Right
+    new THREE.MeshStandardMaterial({
+        map: textureLoader.load("assets/spongebob-view1.jpg"),
+        side: THREE.BackSide,
+    }), // Left
+    new THREE.MeshStandardMaterial({
+        map: textureLoader.load("assets/spongebob-sky.jpg"),
+        side: THREE.BackSide,
+    }), // Top
+    new THREE.MeshStandardMaterial({
+        map: textureLoader.load("assets/spongebob-sand.jpg"),
+        side: THREE.BackSide,
+    }), // Bottom
+    new THREE.MeshStandardMaterial({
+        map: textureLoader.load("assets/spongebob-backdrop.jpg"),
+        side: THREE.BackSide,
     }), // Front
-    new THREE.MeshStandardMaterial({ 
-        map: textureLoader.load('assets/spongebob-barren.gif'),
-        side: THREE.BackSide 
+    new THREE.MeshStandardMaterial({
+        map: textureLoader.load("assets/spongebob-barren.gif"),
+        side: THREE.BackSide,
     }), // Back
 ];
 const room = new THREE.Mesh(roomGeometry, materials);
@@ -154,13 +159,16 @@ scene.add(ambientLight);
 const ROOM_BOUNDS = {
     x: 4.5,
     y: 3.5,
-    z: { min: 0, max: 9.5 }
+    z: { min: 0, max: 9.5 },
 };
 
 function checkBounds(position) {
     position.x = Math.max(-ROOM_BOUNDS.x, Math.min(ROOM_BOUNDS.x, position.x));
     position.y = Math.max(-ROOM_BOUNDS.y, Math.min(ROOM_BOUNDS.y, position.y));
-    position.z = Math.max(ROOM_BOUNDS.z.min, Math.min(ROOM_BOUNDS.z.max, position.z));
+    position.z = Math.max(
+        ROOM_BOUNDS.z.min,
+        Math.min(ROOM_BOUNDS.z.max, position.z)
+    );
     return position;
 }
 
@@ -172,17 +180,17 @@ const endScreen = new EndScreen(document.body, gameStats, restartGame);
 // Configure bubble depth (z) movement
 levelManager.setMovementConfig({
     enabled: true,
-    range: 2,          // How far bubbles can move in z-direction (back and forth)
-    speed: 0.015       // Speed of the depth movement
+    range: 2, // How far bubbles can move in z-direction (back and forth)
+    speed: 0.015, // Speed of the depth movement
 });
 
 const originalCreateBullet = bulletSystem.createBullet;
 const originalCheckCollision = levelManager.checkCollision;
-bulletSystem.createBullet = function(position, direction) {
+bulletSystem.createBullet = function (position, direction) {
     gameStats.shotsFired++;
     originalCreateBullet.call(this, position, direction);
 };
-levelManager.checkCollision = function(bullet) {
+levelManager.checkCollision = function (bullet) {
     const hit = originalCheckCollision.call(this, bullet);
     if (hit) {
         gameStats.shotsHit++;
@@ -201,14 +209,17 @@ controls.onMouseMove = function (event) {
     const movementY = event.movementY || 0;
     this.yawObject.rotation.y -= movementX * sensitivity;
     this.pitchObject.rotation.x -= movementY * sensitivity;
-    this.pitchObject.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.pitchObject.rotation.x));
+    this.pitchObject.rotation.x = Math.max(
+        -Math.PI / 2,
+        Math.min(Math.PI / 2, this.pitchObject.rotation.x)
+    );
 };
 
 // Create an audio listener and attach it to the camera
 const audioListener = new THREE.AudioListener();
 camera.add(audioListener);
 
-// Audio source for blast sound 
+// Audio source for blast sound
 const blastSound = new THREE.Audio(audioListener);
 
 // Audio source for level complete sound
@@ -221,65 +232,80 @@ let levelCompleteSoundLoaded = false;
 // Load blast sound with error handling
 const audioLoader = new THREE.AudioLoader();
 audioLoader.load(
-    'assets/blast.mp3',
-    function(buffer) {
+    "assets/blast.mp3",
+    function (buffer) {
         blastSound.setBuffer(buffer);
         blastSound.setVolume(1.0);
         blastSound.setLoop(false);
         soundLoaded = true;
         console.log("Blast sound loaded successfully");
     },
-    function(xhr) {
-        console.log("Blast sound: " + (xhr.loaded / xhr.total * 100) + '% loaded');
+    function (xhr) {
+        console.log(
+            "Blast sound: " + (xhr.loaded / xhr.total) * 100 + "% loaded"
+        );
     },
-    function(error) {
-        console.error('Error loading blast sound:', error);
+    function (error) {
+        console.error("Error loading blast sound:", error);
     }
 );
 
 // Load level complete sound explicit error handling
 audioLoader.load(
-    'assets/level_complete.mp3',
-    function(buffer) {
+    "assets/level_complete.mp3",
+    function (buffer) {
         levelCompleteSound.setBuffer(buffer);
         levelCompleteSound.setVolume(0.6);
         levelCompleteSound.setLoop(false);
         levelCompleteSoundLoaded = true;
         console.log("Level complete sound loaded successfully");
     },
-    function(xhr) {
-        console.log("Level complete sound: " + (xhr.loaded / xhr.total * 100) + '% loaded');
+    function (xhr) {
+        console.log(
+            "Level complete sound: " +
+                (xhr.loaded / xhr.total) * 100 +
+                "% loaded"
+        );
     },
-    function(error) {
-        console.error('Error loading level complete sound:', error);
+    function (error) {
+        console.error("Error loading level complete sound:", error);
     }
 );
 
 // Initialize audio context with explicit user interaction
-document.addEventListener('click', function initAudio() {
-    // Resume audio context on first click
-    if (audioListener.context.state === 'suspended') {
-        audioListener.context.resume().then(() => {
-            console.log('AudioContext resumed');
-        });
-        document.removeEventListener('click', initAudio);
-    }
-}, { once: false });
+document.addEventListener(
+    "click",
+    function initAudio() {
+        // Resume audio context on first click
+        if (audioListener.context.state === "suspended") {
+            audioListener.context.resume().then(() => {
+                console.log("AudioContext resumed");
+            });
+            document.removeEventListener("click", initAudio);
+        }
+    },
+    { once: false }
+);
 
 // Modified click handler with debugging
 document.addEventListener("click", () => {
-    if (controls.isLocked && gameRunning && !storyManager.isActive() && !endScreen.isActive()) {
+    if (
+        controls.isLocked &&
+        gameRunning &&
+        !storyManager.isActive() &&
+        !endScreen.isActive()
+    ) {
         const bulletPosition = camera.position.clone();
         const bulletDirection = new THREE.Vector3();
         camera.getWorldDirection(bulletDirection);
         bulletSystem.createBullet(bulletPosition, bulletDirection);
-        
+
         // Play blast sound with debugging
         console.log("Attempting to play sound, loaded:", soundLoaded);
-        
+
         if (soundLoaded) {
             // Make sure audio context is running
-            if (audioListener.context.state !== 'running') {
+            if (audioListener.context.state !== "running") {
                 audioListener.context.resume();
             }
 
@@ -312,13 +338,13 @@ function restartGame() {
         levelTimes: [0, 0, 0],
         levelStartTime: performance.now(),
         totalTime: 0,
-        finalScore: 0
+        finalScore: 0,
     };
 
     // Remove all bullets
-    bulletSystem.bullets.forEach(bullet => bulletSystem.scene.remove(bullet));
+    bulletSystem.bullets.forEach((bullet) => bulletSystem.scene.remove(bullet));
     bulletSystem.bullets = [];
-    
+
     // Reset level
     levelManager.currentLevel = 1;
     levelManager.initLevel();
@@ -342,53 +368,64 @@ function handleLevelComplete() {
     gameRunning = false;
     levelCompleted = true;
     controls.unlock();
-    
+
     const currentLevel = levelManager.getCurrentLevel();
-    
+
     const levelEndTime = performance.now();
     const levelTime = levelEndTime - gameStats.levelStartTime;
     gameStats.levelTimes[currentLevel - 1] = levelTime;
     gameStats.totalTime += levelTime;
-    
+
     // Calculate time bonus if level completed in under 2 minutes
     const twoMinutesInMs = 2 * 60 * 1000;
     if (levelTime < twoMinutesInMs) {
-        const secondsUnderTwoMinutes = Math.floor((twoMinutesInMs - levelTime) / 1000);
+        const secondsUnderTwoMinutes = Math.floor(
+            (twoMinutesInMs - levelTime) / 1000
+        );
         const timeBonus = Math.max(0, secondsUnderTwoMinutes * 5); // 10 points per second under 2 minutes
         score += timeBonus;
-        console.log(`Time Bonus: +${timeBonus} points (${secondsUnderTwoMinutes} seconds under 2 minutes)`);
+        console.log(
+            `Time Bonus: +${timeBonus} points (${secondsUnderTwoMinutes} seconds under 2 minutes)`
+        );
     }
-    
+
     if (currentLevel === 3) {
         storyManager.showStory("level3Complete", () => {
             showEndScreen();
         });
     } else {
         let storyKey = currentLevel === 1 ? "level1Complete" : "level2Complete";
-        
+
         storyManager.showStory(storyKey, () => {
             levelManager.nextLevel();
             gameRunning = true;
             levelCompleted = false;
             controls.lock();
-            
+
             gameStats.levelStartTime = performance.now();
         });
     }
 }
 
 function showEndScreen() {
-    let accuracy = gameStats.shotsFired > 0 ? (gameStats.shotsHit / gameStats.shotsFired) * 100 : 0;
+    let accuracy =
+        gameStats.shotsFired > 0
+            ? (gameStats.shotsHit / gameStats.shotsFired) * 100
+            : 0;
 
     // Base score from enemies hit and time bonuses
     let finalScore = score;
-    
+
     // Add accuracy bonus - up to 500 points for perfect accuracy
-    let accuracyBonus = Math.round(accuracy/100 * 300);
+    let accuracyBonus = Math.round((accuracy / 100) * 300);
     finalScore += accuracyBonus;
-    
-    console.log(`Final Score: ${finalScore} (Base: ${score}, Accuracy Bonus: ${accuracyBonus}, Accuracy: ${accuracy.toFixed(1)}%)`);
-    
+
+    console.log(
+        `Final Score: ${finalScore} (Base: ${score}, Accuracy Bonus: ${accuracyBonus}, Accuracy: ${accuracy.toFixed(
+            1
+        )}%)`
+    );
+
     gameStats.finalScore = finalScore;
 
     endScreen.updateStats(gameStats);
@@ -403,8 +440,12 @@ function updateHUD() {
     let seconds = Math.floor(elapsedTime % 60);
 
     document.getElementById("levelText").innerText = `Level: ${level}`;
-    document.getElementById("bubblesLeftText").innerText = `Bubbles Left: ${bubblesLeft}`;
-    document.getElementById("timeText").innerText = `Time: ${minutes}m ${seconds}s`;
+    document.getElementById(
+        "bubblesLeftText"
+    ).innerText = `Bubbles Left: ${bubblesLeft}`;
+    document.getElementById(
+        "timeText"
+    ).innerText = `Time: ${minutes}m ${seconds}s`;
     document.getElementById("scoreText").innerText = `Score: ${score}`;
 }
 
@@ -420,8 +461,10 @@ function updateMovement() {
     const right = new THREE.Vector3();
     right.crossVectors(camera.up, direction).normalize();
 
-    if (moveState.forward) camera.position.addScaledVector(direction, moveSpeed);
-    if (moveState.backward) camera.position.addScaledVector(direction, -moveSpeed);
+    if (moveState.forward)
+        camera.position.addScaledVector(direction, moveSpeed);
+    if (moveState.backward)
+        camera.position.addScaledVector(direction, -moveSpeed);
     if (moveState.left) camera.position.addScaledVector(right, moveSpeed);
     if (moveState.right) camera.position.addScaledVector(right, -moveSpeed);
 
@@ -434,19 +477,21 @@ function animate() {
         levelManager.update(ROOM_BOUNDS);
         updateMovement();
         updateHUD();
-        
+
         if (levelManager.allTargetsCleared() && !levelCompleted) {
-            console.log("Level completed! Attempting to play LEVEL COMPLETE sound");
-            
+            console.log(
+                "Level completed! Attempting to play LEVEL COMPLETE sound"
+            );
+
             if (soundLoaded) {
-                if (audioListener.context.state !== 'running') {
+                if (audioListener.context.state !== "running") {
                     audioListener.context.resume();
                 }
-                
+
                 if (blastSound.isPlaying) {
                     blastSound.stop();
                 }
-                
+
                 try {
                     levelCompleteSound.play();
                     console.log("Level complete sound played successfully");
@@ -456,7 +501,7 @@ function animate() {
             } else {
                 console.warn("Level complete sound not loaded yet");
             }
-            
+
             handleLevelComplete();
         }
     }
