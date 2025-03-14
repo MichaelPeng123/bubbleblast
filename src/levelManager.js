@@ -6,11 +6,11 @@ class BubbleParticle {
         this.scene = scene;
         this.position = position.clone();
         this.age = 0;
-        this.lifetime = 1.5; 
-        
+        this.lifetime = 1.5;
+
         // Create larger white bubble with more visibility
         const geometry = new THREE.SphereGeometry(size * 1.5);
-        
+
         // Brighter + more visible material
         const material = new THREE.MeshPhysicalMaterial({
             color: 0xffffff,
@@ -22,39 +22,39 @@ class BubbleParticle {
             metalness: 0.0,
             clearcoat: 1.0,
             clearcoatRoughness: 0.1,
-            transmission: 0.9
+            transmission: 0.9,
         });
-        
+
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.position.copy(this.position);
-        
+
         // Slightly faster movement
         this.velocity = new THREE.Vector3(
             (Math.random() - 0.5) * 0.015,
             Math.random() * 0.04,
             (Math.random() - 0.5) * 0.015
         );
-        
+
         scene.add(this.mesh);
     }
-    
+
     update(deltaTime) {
         this.age += deltaTime;
-        
+
         this.mesh.position.add(this.velocity);
-        
+
         // Fade out based on age
         if (this.mesh.material) {
             this.mesh.material.opacity = 0.7 * (1 - this.age / this.lifetime);
-            
+
             // Add slight pulsing effect for visibility
             const pulseScale = 1.0 + 0.1 * Math.sin(this.age * 5);
             this.mesh.scale.set(pulseScale, pulseScale, pulseScale);
         }
-        
+
         return this.age < this.lifetime;
     }
-    
+
     remove() {
         this.scene.remove(this.mesh);
         if (this.mesh.material) {
@@ -66,57 +66,60 @@ class BubbleParticle {
     }
 }
 
-
 class FloatingScore {
     constructor(scene, position, score = 100) {
         this.scene = scene;
         this.position = position.clone();
         this.age = 0;
         this.lifetime = 1.5;
-        
+
         // Create a canvas for the text
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
         canvas.width = 128;
         canvas.height = 64;
-        
+
         // Draw the score text
-        context.fillStyle = '#FFFFFF';
-        context.font = 'bold 48px Arial';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
+        context.fillStyle = "#FFFFFF";
+        context.font = "bold 48px Arial";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
         context.fillText(score.toString(), canvas.width / 2, canvas.height / 2);
-        context.strokeStyle = '#00AAFF';
+        context.strokeStyle = "#00AAFF";
         context.lineWidth = 3;
-        context.strokeText(score.toString(), canvas.width / 2, canvas.height / 2);
-        
+        context.strokeText(
+            score.toString(),
+            canvas.width / 2,
+            canvas.height / 2
+        );
+
         // Create sprite from all of the above
         const texture = new THREE.CanvasTexture(canvas);
         const material = new THREE.SpriteMaterial({
             map: texture,
             transparent: true,
-            opacity: 1.0
+            opacity: 1.0,
         });
         this.sprite = new THREE.Sprite(material);
         this.sprite.position.copy(this.position);
         this.sprite.scale.set(1.0, 0.5, 1.0);
-        
+
         scene.add(this.sprite);
     }
-    
+
     update(deltaTime) {
         this.age += deltaTime;
-        
+
         this.sprite.position.y += 0.02;
-        
+
         // Fade out based on age
         if (this.sprite.material) {
             this.sprite.material.opacity = 1.0 * (1 - this.age / this.lifetime);
         }
-        
+
         return this.age < this.lifetime;
     }
-    
+
     remove() {
         this.scene.remove(this.sprite);
         if (this.sprite.material && this.sprite.material.map) {
@@ -131,24 +134,26 @@ export class Target {
         this.scene = scene;
         this.radius = radius;
         const geometry = new THREE.CircleGeometry(this.radius, 32);
-        const bubbleTexture = new THREE.TextureLoader().load('../assets/dirty-bubble.png');
+        const bubbleTexture = new THREE.TextureLoader().load(
+            "../assets/dirty-bubble.png"
+        );
         const material = new THREE.MeshStandardMaterial({
             emissive: 0x7c602b,
             emissiveIntensity: 0.5,
-            map: bubbleTexture
+            map: bubbleTexture,
         });
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.position.copy(position);
         this.velocity = velocity;
         this.scene.add(this.mesh);
-        
+
         // Add depth movement properties
         this.initialZ = position.z;
         this.depthMovementEnabled = true;
         this.depthRange = 2;
         this.depthSpeed = 0.01;
         this.depthPhase = Math.random() * Math.PI * 2; // Random starting phase
-        
+
         // Add particle emission properties
         this.bubbleEmissionRate = 0.1;
         this.timeSinceLastEmission = Math.random() * this.bubbleEmissionRate;
@@ -159,55 +164,63 @@ export class Target {
         this.mesh.position.add(this.velocity);
 
         // Bounce off the walls
-        if (this.mesh.position.x >= bounds.x || this.mesh.position.x <= -bounds.x) {
+        if (
+            this.mesh.position.x >= bounds.x ||
+            this.mesh.position.x <= -bounds.x
+        ) {
             this.velocity.x *= -1;
         }
-        if (this.mesh.position.y >= bounds.y || this.mesh.position.y <= -bounds.y) {
+        if (
+            this.mesh.position.y >= bounds.y ||
+            this.mesh.position.y <= -bounds.y
+        ) {
             this.velocity.y *= -1;
         }
-        
+
         // Add Z-axis movement
         if (this.depthMovementEnabled) {
             this.depthPhase += this.depthSpeed;
-            
+
             // Calculate new Z position using sine wave
             const zOffset = Math.sin(this.depthPhase) * this.depthRange;
             this.mesh.position.z = this.initialZ + zOffset;
         }
-        
+
         // Track time for bubble emission
         if (emitBubbles) {
             this.timeSinceLastEmission += deltaTime;
-            
+
             // True if it's time to emit a bubble
             return this.timeSinceLastEmission >= this.bubbleEmissionRate;
         }
-        
+
         return false;
     }
 
     emitBubble(scene) {
         this.timeSinceLastEmission = 0;
-        
+
         const particles = [];
         for (let i = 0; i < this.bubblesPerEmission; i++) {
             const emissionPos = this.mesh.position.clone();
             emissionPos.x += (Math.random() - 0.5) * this.radius;
             emissionPos.y += (Math.random() - 0.5) * this.radius;
             emissionPos.z += (Math.random() - 0.5) * this.radius;
-            
+
             // Random size variation
             const size = 0.03 + Math.random() * 0.04;
-            
+
             particles.push(new BubbleParticle(scene, emissionPos, size));
         }
-        
+
         return particles;
     }
 
     checkCollision(bullet) {
         const distance = bullet.position.distanceTo(this.mesh.position);
-        return distance < this.radius + bullet.geometry.parameters.radius;
+        const collisionRadius =
+            (this.radius + bullet.geometry.parameters.radius) * 1.5; // 50% larger collision radius
+        return distance < collisionRadius;
     }
 
     remove() {
@@ -225,16 +238,16 @@ export class LevelManager {
         this.depthMovementConfig = {
             enabled: true,
             range: 2,
-            speed: 0.01
+            speed: 0.01,
         };
         this.initLevel();
         this.clock = new THREE.Clock();
     }
 
     setMovementConfig(config) {
-        this.depthMovementConfig = {...this.depthMovementConfig, ...config};
+        this.depthMovementConfig = { ...this.depthMovementConfig, ...config };
 
-        this.targets.forEach(target => {
+        this.targets.forEach((target) => {
             target.depthMovementEnabled = this.depthMovementConfig.enabled;
             target.depthRange = this.depthMovementConfig.range;
             target.depthSpeed = this.depthMovementConfig.speed;
@@ -242,7 +255,7 @@ export class LevelManager {
     }
 
     initLevel() {
-        this.targets.forEach(target => target.remove());
+        this.targets.forEach((target) => target.remove());
         this.targets = [];
 
         // Dynamic Level Difficulty
@@ -274,45 +287,45 @@ export class LevelManager {
                 0
             );
             const target = new Target(this.scene, position, velocity);
-            
+
             // Apply depth movement settings
             target.depthMovementEnabled = this.depthMovementConfig.enabled;
             target.depthRange = this.depthMovementConfig.range;
             target.depthSpeed = this.depthMovementConfig.speed;
-            
+
             this.targets.push(target);
         }
     }
 
     update(bounds) {
         const deltaTime = this.clock.getDelta();
-        
+
         // Update targets and emit bubbles
-        this.targets.forEach(target => {
+        this.targets.forEach((target) => {
             const shouldEmitBubble = target.update(bounds, deltaTime, true);
-            
+
             if (shouldEmitBubble) {
                 const particles = target.emitBubble(this.scene);
                 this.bubbleParticles.push(...particles);
             }
         });
-        
+
         // Update and remove floating scores
         for (let i = this.floatingScores.length - 1; i >= 0; i--) {
             const score = this.floatingScores[i];
             const isAlive = score.update(deltaTime);
-            
+
             if (!isAlive) {
                 score.remove();
                 this.floatingScores.splice(i, 1);
             }
         }
-        
+
         // Update and remove bubble particles
         for (let i = this.bubbleParticles.length - 1; i >= 0; i--) {
             const particle = this.bubbleParticles[i];
             const isAlive = particle.update(deltaTime);
-            
+
             if (!isAlive) {
                 particle.remove();
                 this.bubbleParticles.splice(i, 1);
@@ -322,12 +335,15 @@ export class LevelManager {
 
     checkCollision(bullet) {
         for (let i = 0; i < this.targets.length; i++) {
-        if (this.targets[i].checkCollision(bullet)) {
+            if (this.targets[i].checkCollision(bullet)) {
                 // Create floating score at the target's position
                 const scorePosition = this.targets[i].mesh.position.clone();
-                const floatingScore = new FloatingScore(this.scene, scorePosition);
+                const floatingScore = new FloatingScore(
+                    this.scene,
+                    scorePosition
+                );
                 this.floatingScores.push(floatingScore);
-                
+
                 this.targets[i].remove();
                 this.targets.splice(i, 1);
                 return true;
