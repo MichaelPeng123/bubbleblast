@@ -383,7 +383,7 @@ function showEndScreen() {
     // Base score from enemies hit and time bonuses
     let finalScore = score;
     
-    // Add accuracy bonus - up to 300 points for perfect accuracy
+    // Add accuracy bonus - up to 500 points for perfect accuracy
     let accuracyBonus = Math.round(accuracy/100 * 300);
     finalScore += accuracyBonus;
     
